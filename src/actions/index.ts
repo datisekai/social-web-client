@@ -5,7 +5,7 @@ export const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 export const SERVER_URL = BASE_URL + "/api";
 
-export const SOCKET_URL = BASE_URL?.replace('http','ws') || "";
+export const SOCKET_URL = BASE_URL?.replace(BASE_URL.includes('http') ? 'http' : 'https','ws') || "";
 
 export const server = axios.create({
   baseURL: SERVER_URL,
