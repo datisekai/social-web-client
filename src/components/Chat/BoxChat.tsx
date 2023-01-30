@@ -18,6 +18,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { BiArrowBack, BiSend } from "react-icons/bi";
 import MessageAction from "@/actions/Message.action";
 import useWindowSize from "../hooks/useWindowSize";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 const BoxChat = () => {
   const [showEmoji, setShowEmoji] = React.useState(false);
@@ -34,6 +35,7 @@ const BoxChat = () => {
     }
     return null;
   });
+
 
   const { height } = useWindowSize();
 
@@ -132,7 +134,7 @@ const BoxChat = () => {
 
   React.useEffect(() => {
     socket.current?.on("get-new-message-cr2", (roomMess: any) => {
-      if (data && data.room_messes) {
+      if (data && data.room_messes && roomMess.roomId == roomId) {
         queryClient.setQueryData(["box-chat", Number(roomId)], {
           ...data,
           room_messes: [...data?.room_messes, roomMess],
@@ -155,7 +157,22 @@ const BoxChat = () => {
         queryClient.setQueryData(["get-list-chat", user], newListChat);
       }
     });
-  }, [data]);
+
+    socket?.current?.on('get-recall-message',(result:{receiveId:number, messageId:number}) => {
+      if (data && data.room_messes && user?.id === result.receiveId) {
+        queryClient.setQueryData(["box-chat", Number(roomId)], {
+          ...data,
+          room_messes: data.room_messes.map((item: any) => {
+            if (item.id == Number(result.messageId)) {
+              return { ...item, message: { ...item.message, status: false } };
+            }
+            return item;
+          }),
+        });
+      }
+    })
+    
+  }, [socket.current,data]);
 
   React.useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
@@ -173,8 +190,8 @@ const BoxChat = () => {
   const toolChat = React.useRef<any>(null);
 
   const boxChatHeight = React.useMemo(() => {
-    const heightHeader = header?.current?.offsetHeight || 0;
-    const heightToolChat = toolChat?.current?.offsetHeight || 0;
+    const heightHeader = header?.current?.offsetHeight || 72;
+    const heightToolChat = toolChat?.current?.offsetHeight || 64;
 
     return height - (heightHeader + heightToolChat + 12);
   }, [header, toolChat, height]);
@@ -206,7 +223,7 @@ const BoxChat = () => {
                     }`}
                   >
                     <div className="w-12 md:w-14 rounded-full">
-                      <img src={dataRender.image} />
+                      <LazyLoadImage className="rounded-full" effect="blur" src={dataRender.image} />
                     </div>
                   </div>
                 ) : (
@@ -250,17 +267,17 @@ const BoxChat = () => {
             </div>
           </header>
           <div
-            className=" px-2 overflow-y-scroll mt-2"
+            className=" px-2  mt-2 overflow-y-scroll"
             style={{ height: boxChatHeight }}
           >
             {data?.room_messes.map((item) =>
               item.userId === user?.id ? (
                 <div key={item.id} ref={scroll}>
-                  <CardMessage {...item} type="end" />
+                  <CardMessage receiveId={dataRender.activeId} {...item} type="end" />
                 </div>
               ) : (
                 <div key={item.id} ref={scroll}>
-                  <CardMessage {...item} type="start" />
+                  <CardMessage receiveId={dataRender.activeId} {...item} type="start" />
                 </div>
               )
             )}

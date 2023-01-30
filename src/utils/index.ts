@@ -42,3 +42,44 @@ export const localeFunc = (number: number, index: number, totalSec: number) => {
     ['%s years ago', '%s năm trước']
   ][index];
 };
+
+export const reactionImage: any = {
+  like: "/reactions/images/like.svg",
+  love: "/reactions/images/love.svg",
+  haha: "/reactions/images/haha.svg",
+  care: "/reactions/images/care.svg",
+  angry: "/reactions/images/angry.svg",
+  sad: "/reactions/images/sad.svg",
+  wow: "/reactions/images/wow.svg",
+};
+
+export const reactionGif = [
+  {
+    id: "like",
+    image: "/reactions/gifs/like.gif",
+  },
+  {
+    id: "love",
+    image: "/reactions/gifs/love.gif",
+  },
+  {
+    id: "care",
+    image: "/reactions/gifs/care.gif",
+  },
+  {
+    id: "haha",
+    image: "/reactions/gifs/haha.gif",
+  },
+  {
+    id: "wow",
+    image: "/reactions/gifs/wow.gif",
+  },
+  {
+    id: "sad",
+    image: "/reactions/gifs/sad.gif",
+  },
+  {
+    id: "angry",
+    image: "/reactions/gifs/angry.gif",
+  },
+];

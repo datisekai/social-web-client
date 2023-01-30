@@ -2,6 +2,7 @@ import { SOCKET_URL } from "@/actions";
 import RoomAction from "@/actions/Room.action";
 import UserAction from "@/actions/User.action";
 import CardFriend from "@/components/Friend/CardFriend";
+import useWindowSize from "@/components/hooks/useWindowSize";
 import AuthLayout from "@/components/layout/AuthLayout";
 import ChatLayout from "@/components/layout/ChatLayout";
 import Spinner from "@/components/Loading/Spinner";
@@ -62,46 +63,54 @@ const Friend = () => {
     }, []);
   }, [listUser, userOnline]);
 
+  const { height } = useWindowSize();
 
   return (
     <AuthLayout>
       <ChatLayout>
         <>
           <section className="py-2">
-            <h1 className="text-lg md:text-xl">Mọi người</h1>
-            <section className="mt-2">
-              <input
-                type="text"
-                placeholder="Tìm kiếm"
-                className="input input-bordered input-primary w-full max-w-full md:max-w-sm"
-              />
-            </section>
-            <section>
-              <p className="text-sm text-info mt-4">
-                Người liên hệ đang hoạt động{" "}
-                <span>{`(${activeRenders.length})`}</span>
-              </p>
-              <section className="mt-4 space-y-2">
-                {activeRenders?.map((item) => (
-                  <div onClick={() => handleCreateRoom2(item)} key={item.id}>
-                    <CardFriend {...item} />
-                  </div>
-                ))}
+            <div>
+              <h1 className="text-lg md:text-xl">Mọi người</h1>
+              <section className="mt-2">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm"
+                  className="input input-bordered input-primary w-full max-w-full md:max-w-sm"
+                />
               </section>
-            </section>
-            <section>
-              <p className="text-sm text-info mt-4">
-                Người liên hệ offline{" "}
-                <span>{`(${userOffline?.length || 0})`}</span>
-              </p>
-              <section className="mt-4 space-y-2">
-                {userOffline?.map((item) => (
-                  <div onClick={() => handleCreateRoom2(item)} key={item.id}>
-                    <CardFriend {...item} isActive={false} />
-                  </div>
-                ))}
+            </div>
+            <div
+              className="mt-2  overflow-y-scroll"
+              style={{ height: height - 130 }}
+            >
+              <section className="">
+                <p className="text-sm text-info mt-4">
+                  Người liên hệ đang hoạt động{" "}
+                  <span>{`(${activeRenders.length})`}</span>
+                </p>
+                <section className="mt-4 space-y-2 ">
+                  {activeRenders?.map((item) => (
+                    <div onClick={() => handleCreateRoom2(item)} key={item.id}>
+                      <CardFriend {...item} />
+                    </div>
+                  ))}
+                </section>
               </section>
-            </section>
+              <section>
+                <p className="text-sm text-info mt-4 ">
+                  Người liên hệ offline{" "}
+                  <span>{`(${userOffline?.length || 0})`}</span>
+                </p>
+                <section className="mt-4 space-y-2 ">
+                  {userOffline?.map((item) => (
+                    <div onClick={() => handleCreateRoom2(item)} key={item.id}>
+                      <CardFriend {...item} isActive={false} />
+                      </div>
+                  ))}
+                </section>
+              </section>
+            </div>
           </section>
 
           {isCreateRoom && (

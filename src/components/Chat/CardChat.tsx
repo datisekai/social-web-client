@@ -2,6 +2,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { RoomModel } from "@/model/Room.model";
 import { useRouter } from "next/router";
 import React from "react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 const CardChat: React.FC<RoomModel> = ({
   createdAt,
@@ -52,7 +53,7 @@ const CardChat: React.FC<RoomModel> = ({
           }`}
         >
           <div className="w-14 rounded-full">
-            <img src={dataRender.image} />
+            <LazyLoadImage effect="blur" className="rounded-full" src={dataRender.image} />
           </div>
         </div>
       ) : (
@@ -67,7 +68,7 @@ const CardChat: React.FC<RoomModel> = ({
         <h3>{dataRender.name}</h3>
         <p className="text-sm line-clamp-1">
           {messageId != null
-            ? `${message?.user?.name}: ${message?.content}`
+            ? message?.status ? `${message?.user?.name}: ${message?.content}` : `${message?.user?.name}: Tin nhắn đã thu hồi`
             : "Kết nối bạn bè qua FIRECHAT"}
         </p>
       </div>

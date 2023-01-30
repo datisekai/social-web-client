@@ -74,9 +74,7 @@ const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
     deleteCookie("token");
     router.reload();
     socket.current.disconnect();
-    socket.current.on("get-user-active", (users: UserModel[]) => {
-      setUserOnline(users);
-    });
+    
   };
 
   React.useEffect(() => {
@@ -94,7 +92,7 @@ const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
 
   return (
     <>
-      <div className="flex px-2 max-h-[100vh] overflow-hidden">
+      <div className="flex px-2 ">
         <div className="w-[50px] hidden py-4 md:flex flex-col justify-between">
           <div className="flex-1 space-y-2">
             {dataSidebar?.map((item, index) => {

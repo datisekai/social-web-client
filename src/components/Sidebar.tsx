@@ -41,9 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ handleClose, open }) => {
     handleClose();
     router.reload();
     socket.current.disconnect();
-    socket.current.on("get-user-active", (users: UserModel[]) => {
-      setUserOnline(users);
-    });
+   
   };
 
   return (

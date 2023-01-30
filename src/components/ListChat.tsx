@@ -18,10 +18,25 @@ const ListChat = () => {
     RoomAction.userRoom
   );
 
+
   React.useEffect(() => {
     socket.current?.on("get-new-room-cr2", (newRoom: any) => {
       if (data) {
         queryClient.setQueryData(["get-list-chat", user], [newRoom, ...data]);
+      }
+    });
+
+    socket.current?.on("get-recall-message", (result: any) => {
+      if (data?.some((item: any) => item.messageId === result.messageId)) {
+        queryClient.setQueryData(
+          ["get-list-chat", user],
+          data?.map((item: any) => {
+            if (item.messageId === result.messageId) {
+              return { ...item, message: { ...item.message, status: false } };
+            }
+            return item;
+          })
+        );
       }
     });
   }, [data]);
