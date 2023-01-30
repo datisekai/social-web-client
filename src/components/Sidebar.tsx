@@ -32,7 +32,6 @@ const Sidebar: React.FC<SidebarProps> = ({ handleClose, open }) => {
         ?.querySelector("html")
         ?.setAttribute("data-theme", dataTheme[indexTheme]);
       localStorage && setLocal("data-theme", dataTheme[indexTheme]);
-      successNotify(`Theme ${dataTheme[indexTheme]}`);
     }
   }, [indexTheme]);
 
@@ -75,9 +74,12 @@ const Sidebar: React.FC<SidebarProps> = ({ handleClose, open }) => {
           <li
             onClick={() => {
               if (indexTheme === dataTheme.length - 1) {
+                successNotify(`Theme ${dataTheme[0]}`);
                 setIndexTheme(0);
               } else {
-                setIndexTheme(indexTheme + 1);
+                const newIndex = indexTheme + 1;
+                successNotify(`Theme ${dataTheme[newIndex]}`);
+                setIndexTheme(newIndex);
               }
             }}
           >

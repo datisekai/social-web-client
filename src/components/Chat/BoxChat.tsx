@@ -7,7 +7,7 @@ import {
   BsEmojiSmileFill,
 } from "react-icons/bs";
 import CardMessage from "./CardMessage";
-import { AiFillFile } from "react-icons/ai";
+import { AiFillFile, AiOutlinePlus } from "react-icons/ai";
 import EmojiPicker from "emoji-picker-react";
 import Tippy from "@tippyjs/react/headless";
 import { reactLocalStorage } from "reactjs-localstorage";
@@ -40,6 +40,7 @@ const BoxChat = () => {
   const inputRef = React.useRef<any>(null);
 
   const handleEmojiClick = (emojiData: any, event: any) => {
+    console.log(emojiData);
     setTextMessage(textMessage + emojiData.emoji);
     inputRef?.current?.focus();
   };
@@ -175,8 +176,6 @@ const BoxChat = () => {
     const heightHeader = header?.current?.offsetHeight || 0;
     const heightToolChat = toolChat?.current?.offsetHeight || 0;
 
-    console.log(height, heightHeader, heightToolChat)
-
     return height - (heightHeader + heightToolChat + 12);
   }, [header, toolChat, height]);
 
@@ -270,12 +269,18 @@ const BoxChat = () => {
             ref={toolChat}
             className=" shadow-md py-2 bottom-0 justify-between flex items-center space-x-2"
           >
-            <div className="p-2 hover:bg-primary-content cursor-pointer rounded-full">
+            {/* <div className="hidden md:block p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full">
               <BsImage className="text-primary text-[24px] md:text-[28px]" />
-            </div>
-            <div className="p-2 hover:bg-primary-content cursor-pointer rounded-full">
+            </div> */}
+            {/* <div className="hidden md:block p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full">
               <AiFillFile className="text-primary text-[24px] md:text-[28px]" />
-            </div>
+            </div> */}
+            <label htmlFor="messageImage">
+              <div className=" p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full">
+                <AiOutlinePlus className="text-primary text-[24px] md:text-[28px]" />
+              </div>
+            </label>
+            <input type="file" className="hidden" accept="image/*" id="messageImage" />
             <input
               type="text"
               value={textMessage}
@@ -315,7 +320,10 @@ const BoxChat = () => {
             {isSending ? (
               <div className="btn text-primary cursor-pointer"></div>
             ) : (
-              <div className="btn text-primary cursor-pointer">
+              <div
+                onClick={handleSend}
+                className="p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full"
+              >
                 <BiSend className="text-primary text-[24px] md:text-[28px]" />
               </div>
             )}
