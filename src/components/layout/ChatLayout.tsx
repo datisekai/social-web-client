@@ -21,16 +21,16 @@ export const dataSidebar = [
   {
     url: "/chat",
     icon: BsFillChatFill,
-    title:"Chat"
+    title: "Chat",
   },
   {
     url: "/friend",
     icon: BsPeopleFill,
-    title:"Friend"
+    title: "Friend",
   },
 ];
 
-const dataTheme = [
+export const dataTheme = [
   "dracula",
   "light",
   "dark",
@@ -63,20 +63,20 @@ const dataTheme = [
 ];
 
 const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
-  const { user,socket, setUserOnline } = React.useContext(AuthContext);
+  const { user, socket, setUserOnline } = React.useContext(AuthContext);
 
   const router = useRouter();
-  const {roomId} = router.query;
+  const { roomId } = router.query;
 
   const [theme, setTheme] = React.useState("dracula");
 
   const handleLogout = () => {
     deleteCookie("token");
-    router.reload()
+    router.reload();
     socket.current.disconnect();
-    socket.current.on('get-user-active',(users:UserModel[]) => {
-      setUserOnline(users)
-    })
+    socket.current.on("get-user-active", (users: UserModel[]) => {
+      setUserOnline(users);
+    });
   };
 
   React.useEffect(() => {
@@ -86,15 +86,15 @@ const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
     setTheme(getLocal("data-theme"));
   }, []);
 
-  const handleChangeTheme = (theme: string) => {
-    document?.querySelector("html")?.setAttribute("data-theme", theme);
-    localStorage && setLocal("data-theme", theme);
-    setTheme(theme);
+  const handleChangeTheme = (newTheme: string) => {
+    document?.querySelector("html")?.setAttribute("data-theme", newTheme);
+    localStorage && setLocal("data-theme", newTheme);
+    setTheme(newTheme);
   };
 
   return (
     <>
-      <div className="flex min-h-screen p-2">
+      <div className="flex px-2 max-h-[100vh] overflow-hidden">
         <div className="w-[50px] hidden py-4 md:flex flex-col justify-between">
           <div className="flex-1 space-y-2">
             {dataSidebar?.map((item, index) => {
@@ -150,8 +150,14 @@ const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
             </div>
           </div>
         </div>
-        <div className={`w-full md:w-[23%] px-2 ${roomId && 'hidden md:block'}`}>{children}</div>
-        <div className={`flex-1 md:block px-2 ${!roomId && 'hidden'}`}>
+        <div
+          className={`w-full md:w-[23%]  py-2 px-2 ${
+            roomId && "hidden md:block"
+          }`}
+        >
+          {children}
+        </div>
+        <div className={`flex-1 md:block ${!roomId && "hidden"}`}>
           <BoxChat />
         </div>
       </div>

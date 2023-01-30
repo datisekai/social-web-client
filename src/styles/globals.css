@@ -8,3 +8,15 @@ body{
     font-family: 'Merriweather', serif;
 }
 
+.opacityAnimation {
+    animation: opacity ease 0.3s;
+}
+
+@keyframes opacity {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

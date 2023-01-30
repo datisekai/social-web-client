@@ -32,10 +32,20 @@ export default function Home() {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  const token = req.cookies["token"];
+
+  if (token) {
+    return {
+      props: {},
+      redirect: {
+        destination: "/chat",
+      },
+    };
+  }
   return {
     props: {},
     redirect: {
-      destination: "/chat",
+      destination: "/auth",
     },
   };
 };

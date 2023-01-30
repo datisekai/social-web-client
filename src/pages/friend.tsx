@@ -62,7 +62,6 @@ const Friend = () => {
     }, []);
   }, [listUser, userOnline]);
 
-  console.log("offline", userOffline);
 
   return (
     <AuthLayout>

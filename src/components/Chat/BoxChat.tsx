@@ -17,6 +17,7 @@ import RoomAction from "@/actions/Room.action";
 import { AuthContext } from "@/context/AuthContext";
 import { BiArrowBack, BiSend } from "react-icons/bi";
 import MessageAction from "@/actions/Message.action";
+import useWindowSize from "../hooks/useWindowSize";
 
 const BoxChat = () => {
   const [showEmoji, setShowEmoji] = React.useState(false);
@@ -31,7 +32,10 @@ const BoxChat = () => {
     if (roomId !== 0) {
       return RoomAction.findRoom(roomId.toString());
     }
+    return null;
   });
+
+  const { height } = useWindowSize();
 
   const inputRef = React.useRef<any>(null);
 
@@ -164,47 +168,76 @@ const BoxChat = () => {
 
   const scroll = React.useRef<any>(null);
 
+  const header = React.useRef<any>(null);
+  const toolChat = React.useRef<any>(null);
+
+  const boxChatHeight = React.useMemo(() => {
+    const heightHeader = header?.current?.offsetHeight || 0;
+    const heightToolChat = toolChat?.current?.offsetHeight || 0;
+
+    console.log(height, heightHeader, heightToolChat)
+
+    return height - (heightHeader + heightToolChat + 12);
+  }, [header, toolChat, height]);
+
   return (
     <>
       {roomId ? (
         <div className="w-full h-full">
-          <header className="sticky top-0  shadow-lg flex items-center justify-between">
-            <div className="flex items-center space-x-2 max-w-sm">
-              {roomId && (
-                <div className="block md:hidden" onClick={() => router.back()}>
-                  <BiArrowBack className="text-[28px] text-primary" />
-                </div>
-              )}
-              {dataRender.image ? (
-                <div
-                  className={`avatar ${
-                    userOnline.some(
-                      (item: any) => item.id === dataRender.activeId
-                    ) && "online"
-                  }`}
-                >
-                  <div className="w-12 md:w-14 rounded-full">
-                    <img src={dataRender.image} />
+          <header
+            ref={header}
+            className="sticky top-0 py-2 bg-base-100 z-[50] shadow-lg flex items-center justify-between"
+          >
+            {!isLoading && (
+              <div className="flex items-center space-x-2 max-w-sm">
+                {roomId && (
+                  <div
+                    className="block md:hidden"
+                    onClick={() => router.back()}
+                  >
+                    <BiArrowBack className="text-[28px] text-primary" />
                   </div>
-                </div>
-              ) : (
-                <div className="avatar rounded-full placeholder">
-                  <div className="w-14 bg-neutral-focus text-neutral-content">
-                    <span>+{data?.room_users.length || 1 - 1}</span>
-                  </div>
-                </div>
-              )}
-              <div className="space-y-1">
-                <h3>{dataRender?.name}</h3>
-                {userOnline.some(
-                  (item: any) => item.id === dataRender.activeId
-                ) && (
-                  <span className="text-xs md:text-sm font-thin text-info">
-                    Đang hoạt động
-                  </span>
                 )}
+                {dataRender.image ? (
+                  <div
+                    className={`avatar ${
+                      userOnline.some(
+                        (item: any) => item.id === dataRender.activeId
+                      ) && "online"
+                    }`}
+                  >
+                    <div className="w-12 md:w-14 rounded-full">
+                      <img src={dataRender.image} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="avatar rounded-full placeholder">
+                    <div className="w-14 bg-neutral-focus text-neutral-content">
+                      <span>+{data?.room_users.length || 1 - 1}</span>
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <h3>{dataRender?.name}</h3>
+                  {userOnline.some(
+                    (item: any) => item.id === dataRender.activeId
+                  ) && (
+                    <span className="text-xs md:text-sm font-thin text-info">
+                      Đang hoạt động
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+            {isLoading && (
+              <div className="animate-pulse flex items-center space-x-2">
+                <div className="flex items-center justify-center w-12 aspect-square md:w-14 rounded-full bg-gray-300  dark:bg-gray-700"></div>
+                <div className="space-y-1">
+                  <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-28 sm:w-32 md:w-36"></div>
+                  <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 w-24 sm:w-28 md:w-32"></div>
+                </div>
+              </div>
+            )}
             <div className="max-w-sm flex items-center space-x-4">
               <div className="p-2 hover:bg-primary-content cursor-pointer rounded-full">
                 <MdCall className="text-primary text-[24px] md:text-[28px]" />
@@ -217,7 +250,10 @@ const BoxChat = () => {
               </div>
             </div>
           </header>
-          <div className=" px-2 h-[76vh] md:h-[80vh] overflow-y-scroll mt-2">
+          <div
+            className=" px-2 overflow-y-scroll mt-2"
+            style={{ height: boxChatHeight }}
+          >
             {data?.room_messes.map((item) =>
               item.userId === user?.id ? (
                 <div key={item.id} ref={scroll}>
@@ -230,7 +266,10 @@ const BoxChat = () => {
               )
             )}
           </div>
-          <div className="sticky shadow-md py-2 bottom-0 justify-between flex items-center space-x-2">
+          <div
+            ref={toolChat}
+            className=" shadow-md py-2 bottom-0 justify-between flex items-center space-x-2"
+          >
             <div className="p-2 hover:bg-primary-content cursor-pointer rounded-full">
               <BsImage className="text-primary text-[24px] md:text-[28px]" />
             </div>

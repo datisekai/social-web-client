@@ -4,11 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 import CardChat from "./Chat/CardChat";
+import Sidebar from "./Sidebar";
 import CardChatSkeleton from "./skeleton/CardChatSkeleton";
 
 const ListChat = () => {
   const { user, socket } = React.useContext(AuthContext);
   const queryClient = useQueryClient();
+
+  const [isOpenSidebar, setIsOpenSidebar] = React.useState(false);
 
   const { data, isLoading } = useQuery(
     ["get-list-chat", user],
@@ -24,12 +27,18 @@ const ListChat = () => {
   }, [data]);
 
   return (
-    <div >
-      <div className="sticky top-0 bg-base-100  z-[50] shadow-md py-2 md:py-0">
+    <div className="h-full">
+      <div className=" bg-base-100  shadow-md py-2 md:py-0">
         <section className=" flex items-center flex-row-reverse md:flex-row justify-between">
           <h1 className="text-lg md:text-xl">Chat</h1>
           <label className="md:hidden btn btn-circle swap swap-rotate">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              checked={isOpenSidebar}
+              onChange={(e) => {
+                setIsOpenSidebar(!isOpenSidebar);
+              }}
+            />
 
             <svg
               className="swap-off fill-current"
@@ -60,17 +69,21 @@ const ListChat = () => {
           />
         </section>
       </div>
-      <section className=" mt-4 space-y-1  max-h-[85vh] md:max-h-[85vh] md:overflow-y-scroll">
+      <section className=" mt-4 space-y-1 h-[85%] overflow-y-scroll">
         {isLoading
           ? [1, 2, 3, 4, 5].map((item) => <CardChatSkeleton key={item} />)
           : data?.map((item) => (
               <div key={item.id}>
-                <Link  href={`/chat/${item.id}`}>
+                <Link href={`/chat/${item.id}`}>
                   <CardChat {...item} />
                 </Link>
               </div>
             ))}
       </section>
+      <Sidebar
+        open={isOpenSidebar}
+        handleClose={() => setIsOpenSidebar(false)}
+      />
     </div>
   );
 };

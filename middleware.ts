@@ -13,7 +13,7 @@ function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: ["/"],
+  matcher: ["/",'/chat','/friend','/chat/path*'],
 };
 
 export default middleware;

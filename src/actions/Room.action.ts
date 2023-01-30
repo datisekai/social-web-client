@@ -40,8 +40,12 @@ const RoomAction: IRoomAction = {
     return result.data;
   },
   findRoom: async (id) => {
+   try {
     const result = await server.get(`/room/find/${id}`);
     return result.data;
+   } catch (error) {
+    
+   }
   },
 };
 

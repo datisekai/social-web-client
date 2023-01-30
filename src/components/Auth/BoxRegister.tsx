@@ -10,8 +10,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { UserModel } from "@/model/User.model";
 
 const BoxRegister = () => {
-
-  const {socket, setUserOnline} = React.useContext(AuthContext);
+  const { socket, setUserOnline } = React.useContext(AuthContext);
 
   const {
     control,
@@ -33,8 +32,6 @@ const BoxRegister = () => {
       setCookie("token", data.token);
       router.push("/");
       successNotify("Đăng ký thành công");
-     
-    
     },
     onError: (err: any) => {
       errorNotify(err);
@@ -46,52 +43,55 @@ const BoxRegister = () => {
   };
 
   return (
-    <div className="card-body">
-      <Input
-        control={control}
-        error={errors}
-        name="name"
-        label="Tên hiển thị"
-        placeholder="Tên hiển thị"
-        rules={{
-          required: "Không được bỏ trống",
-        }}
-      />
-      <Input
-        control={control}
-        error={errors}
-        name="phone"
-        label="Số điện thoại"
-        placeholder="Số điện thoại"
-        rules={{
-          pattern: {
-            message: "Vui lòng nhập đúng định dạng",
-            value:
-              /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im,
-          },
-          required: "Không được bỏ trống",
-        }}
-      />
-      <Input
-        control={control}
-        error={errors}
-        name="password"
-        label="Mật khẩu"
-        placeholder="Mật khẩu"
-        rules={{
-          required: "Không được bỏ trống",
-        }}
-      />
-      <div className="form-control mt-6">
-        <button
-          disabled={isLoading}
-          className="btn btn-primary"
-          onClick={handleSubmit(handleRegister)}
-        >
-          Đăng ký
-        </button>
+    <form onSubmit={handleSubmit(handleRegister)}>
+      <div className="card-body">
+        <Input
+          control={control}
+          error={errors}
+          name="name"
+          label="Tên hiển thị"
+          placeholder="Tên hiển thị"
+          rules={{
+            required: "Không được bỏ trống",
+          }}
+        />
+        <Input
+          control={control}
+          error={errors}
+          name="phone"
+          label="Số điện thoại"
+          placeholder="Số điện thoại"
+          rules={{
+            pattern: {
+              message: "Vui lòng nhập đúng định dạng",
+              value:
+                /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im,
+            },
+            required: "Không được bỏ trống",
+          }}
+        />
+        <Input
+          control={control}
+          error={errors}
+          name="password"
+          label="Mật khẩu"
+          placeholder="Mật khẩu"
+          rules={{
+            required: "Không được bỏ trống",
+          }}
+        />
+        <div className="form-control mt-6">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary"
+            onClick={handleSubmit(handleRegister)}
+          >
+            Đăng ký
+          </button>
+        </div>
       </div>
-    </div>
+    </form>
   );
 };
 
