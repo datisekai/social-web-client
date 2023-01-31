@@ -45,7 +45,7 @@ const ListChat = () => {
 
   return (
     <div className="h-full">
-      <div className=" bg-base-100  shadow-md py-2 md:py-0">
+      <div className=" bg-base-100  py-2 md:py-0">
         <section className=" flex items-center flex-row-reverse md:flex-row justify-between">
           <h1 className="text-lg md:text-xl">Chat</h1>
           <label className="md:hidden btn btn-circle swap swap-rotate">
