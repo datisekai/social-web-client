@@ -42,7 +42,6 @@ const BoxChat = () => {
   const inputRef = React.useRef<any>(null);
 
   const handleEmojiClick = (emojiData: any, event: any) => {
-    console.log(emojiData);
     setTextMessage(textMessage + emojiData.emoji);
     inputRef?.current?.focus();
   };
@@ -184,11 +183,8 @@ const BoxChat = () => {
         id: number | string;
         receiveId: number;
       }) => {
-        const boxChatOld: any = queryClient.getQueryData([
-          "box-chat",
-          Number(roomId),
-        ]);
-          const currentMessage = boxChatOld.room_messes.find((item:any) => item.messageId == result.messageId)
+     
+          const currentMessage = data?.room_messes?.find((item:any) => item.messageId == result.messageId)
           const isReact = currentMessage?.message.mess_reacts.find((item:any) => {
             return item.id === result.id;
           });
@@ -206,8 +202,8 @@ const BoxChat = () => {
               });
             }
             queryClient.setQueryData(["box-chat", Number(roomId)], {
-              ...boxChatOld,
-              room_messes: boxChatOld.room_messes.map((item: any) => {
+              ...data,
+              room_messes: data?.room_messes.map((item: any) => {
                 if (item.messageId === Number(result.messageId)) {
                   return {
                     ...item,
@@ -219,8 +215,8 @@ const BoxChat = () => {
             });
           } else {
             queryClient.setQueryData(["box-chat", Number(roomId)], {
-              ...boxChatOld,
-              room_messes: boxChatOld.room_messes.map((item: any) => {
+              ...data,
+              room_messes: data?.room_messes.map((item: any) => {
                 if (item.messageId == Number(result.messageId)) {
                   return {
                     ...item,
@@ -244,7 +240,7 @@ const BoxChat = () => {
           }
         }
     );
-  }, [socket.current]);
+  }, [socket.current,data]);
 
 
   React.useEffect(() => {

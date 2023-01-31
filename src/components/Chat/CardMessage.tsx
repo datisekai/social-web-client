@@ -281,6 +281,7 @@ const CardMessage: FC<CardMessageProps> = ({
                 >
                   <LazyLoadImage
                     className="w-full"
+                    effect="blur"
                     src={reactionImage[item.react]}
                   />
                 </div>
