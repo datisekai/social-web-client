@@ -266,7 +266,7 @@ const CardMessage: FC<CardMessageProps> = ({
           }`}
         >
           {message?.status ? message?.content : "Tin nhắn đã thu hồi"}
-          {message?.status && (
+          {message?.status && reactDifference?.reacts?.length > 0 && (
             <div
               className={`absolute bg-base-300  flex space-x-[2px] px-1 py-[2px] items-center rounded-full ${
                 user?.id === message?.userId

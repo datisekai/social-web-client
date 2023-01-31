@@ -81,7 +81,7 @@ const Friend = () => {
               </section>
             </div>
             <div
-              className="mt-2  overflow-y-scroll"
+              className="mt-2  overflow-y-scroll pb-16"
               style={{ height: height - 130 }}
             >
               <section className="">

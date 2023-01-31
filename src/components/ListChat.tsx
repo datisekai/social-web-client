@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 import CardChat from "./Chat/CardChat";
+import useAudio from "./hooks/useAudio";
 import Sidebar from "./Sidebar";
 import CardChatSkeleton from "./skeleton/CardChatSkeleton";
 
@@ -18,6 +19,7 @@ const ListChat = () => {
     RoomAction.userRoom
   );
 
+  const [play, pause] = useAudio('/audios/notify.mp3')
 
   React.useEffect(() => {
     socket.current?.on("get-new-room-cr2", (newRoom: any) => {

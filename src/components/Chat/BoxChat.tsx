@@ -19,10 +19,13 @@ import { BiArrowBack, BiSend } from "react-icons/bi";
 import MessageAction from "@/actions/Message.action";
 import useWindowSize from "../hooks/useWindowSize";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import useAudio from "../hooks/useAudio";
 
 const BoxChat = () => {
   const [showEmoji, setShowEmoji] = React.useState(false);
   const [textMessage, setTextMessage] = React.useState("");
+
+  const [play, pause] = useAudio('/audios/notify.mp3')
 
   const router = useRouter();
   const { roomId = 0 } = router.query;
@@ -57,7 +60,7 @@ const BoxChat = () => {
 
     if (user && data) {
       if (!currentName) {
-        if (data?.room_users.length === 2) {
+        if (data?.room_users?.length === 2) {
           const receiveUser = data?.room_users.find(
             (item) => item.userId !== user.id
           );
@@ -131,6 +134,7 @@ const BoxChat = () => {
     }
   );
 
+
   React.useEffect(() => {
     socket.current?.on("get-new-message-cr2", (roomMess: any) => {
       if (data && data.room_messes && roomMess.roomId == roomId) {
@@ -155,6 +159,11 @@ const BoxChat = () => {
         ];
         queryClient.setQueryData(["get-list-chat", user], newListChat);
       }
+
+      if(roomMess.roomId != roomId){
+        play()
+      }
+
     });
 
     socket?.current?.on('get-recall-message',(result:{receiveId:number, messageId:number}) => {
