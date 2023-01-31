@@ -9,6 +9,15 @@ interface RoomUser {
   user: UserModel;
 }
 
+interface MessageReact{
+    id?:number,
+    createdAt?:Date,
+    updatedAt?:Date,
+    react:string,
+    messageId:number,
+    userId:number
+}
+
 export interface Message {
   id: number;
   content: string;
@@ -18,7 +27,7 @@ export interface Message {
   createdAt: Date;
   updatedAt: Date;
   user: UserModel;
-  mess_reacts: any[];
+  mess_reacts: MessageReact[];
 }
 
 export interface RoomMess {

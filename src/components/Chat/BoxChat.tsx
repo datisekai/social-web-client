@@ -175,6 +175,79 @@ const BoxChat = () => {
   }, [socket.current,data]);
 
   React.useEffect(() => {
+    socket?.current?.on(
+      "get-react-message",
+      (result: {
+        messageId: number | string;
+        userId: number;
+        react: string;
+        id: number | string;
+        receiveId: number;
+      }) => {
+        const boxChatOld: any = queryClient.getQueryData([
+          "box-chat",
+          Number(roomId),
+        ]);
+          const currentMessage = boxChatOld.room_messes.find((item:any) => item.messageId == result.messageId)
+          const isReact = currentMessage?.message.mess_reacts.find((item:any) => {
+            return item.id === result.id;
+          });
+
+          if (isReact) {
+            let newMessageReact:any = []
+            if(isReact.react == result.react){
+              newMessageReact = currentMessage?.message.mess_reacts.filter((item:any) => item.id !== result.id)
+            }else{
+              newMessageReact = currentMessage?.message.mess_reacts.map((item:any) => {
+                if (item.id === result.id) {
+                  return { ...item, react: result.react };
+                }
+                return item;
+              });
+            }
+            queryClient.setQueryData(["box-chat", Number(roomId)], {
+              ...boxChatOld,
+              room_messes: boxChatOld.room_messes.map((item: any) => {
+                if (item.messageId === Number(result.messageId)) {
+                  return {
+                    ...item,
+                    message: { ...item.message, mess_reacts: newMessageReact },
+                  };
+                }
+                return item;
+              }),
+            });
+          } else {
+            queryClient.setQueryData(["box-chat", Number(roomId)], {
+              ...boxChatOld,
+              room_messes: boxChatOld.room_messes.map((item: any) => {
+                if (item.messageId == Number(result.messageId)) {
+                  return {
+                    ...item,
+                    message: {
+                      ...item.message,
+                      mess_reacts: [
+                        ...item.message.mess_reacts,
+                        {
+                          messageId: Number(result.messageId),
+                          userId: result.userId,
+                          react: result.react,
+                          id: result.id,
+                        },
+                      ],
+                    },
+                  };
+                }
+                return item;
+              }),
+            });
+          }
+        }
+    );
+  }, [socket.current]);
+
+
+  React.useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
   }, [data]);
 
