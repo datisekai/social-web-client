@@ -19,7 +19,6 @@ const ListChat = () => {
     RoomAction.userRoom
   );
 
-  const [play, pause] = useAudio('/audios/notify.mp3')
 
   React.useEffect(() => {
     socket.current?.on("get-new-room-cr2", (newRoom: any) => {

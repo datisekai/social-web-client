@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { MdCall } from "react-icons/md";
 import {
   BsFillCameraVideoFill,
@@ -20,17 +20,18 @@ import MessageAction from "@/actions/Message.action";
 import useWindowSize from "../hooks/useWindowSize";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import useAudio from "../hooks/useAudio";
+import useActiveElement from "../hooks/useActiveElement";
 
 const BoxChat = () => {
   const [showEmoji, setShowEmoji] = React.useState(false);
   const [textMessage, setTextMessage] = React.useState("");
 
-  const [play, pause] = useAudio('/audios/notify.mp3')
-
   const router = useRouter();
+  const activeElement = useActiveElement();
   const { roomId = 0 } = router.query;
 
   const { user, userOnline, socket } = React.useContext(AuthContext);
+  const [play] = useAudio("/audios/notify.mp3");
 
   const { data, isLoading } = useQuery(["box-chat", Number(roomId)], () => {
     if (roomId !== 0) {
@@ -38,7 +39,6 @@ const BoxChat = () => {
     }
     return null;
   });
-
 
   const { height } = useWindowSize();
 
@@ -57,6 +57,7 @@ const BoxChat = () => {
     let currentName = data?.name;
     let currentImage = data?.image;
     let activeId = 0;
+    let avatarReceive = ''
 
     if (user && data) {
       if (!currentName) {
@@ -67,6 +68,7 @@ const BoxChat = () => {
           if (receiveUser) {
             currentName = receiveUser.user.name;
             activeId = receiveUser.userId;
+            avatarReceive = receiveUser.user.avatar;
           }
         } else {
           currentName = "Chưa có tên";
@@ -91,8 +93,35 @@ const BoxChat = () => {
       name: currentName,
       image: currentImage,
       activeId,
+      avatarReceive
     };
   }, [data, userOnline]);
+
+  const { mutate: seenMessage } = useMutation(MessageAction.seenMessage, {
+    onSuccess: (data, variables) => {
+      socket.current?.emit("seen-message", {
+        receiveId: dataRender.activeId,
+        listMessage: data,
+      });
+    },
+  });
+
+  React.useEffect(() => {
+    if (user && data && roomId != 0) {
+      if (activeElement == inputRef.current) {
+        const listMessage = data?.room_messes?.reduce((pre: number[], cur) => {
+          if (cur.userId !== user?.id && !cur.message.isSeen) {
+            return [...pre, cur.id];
+          }
+          return pre;
+        }, []);
+
+        if (listMessage && listMessage.length > 0) {
+          seenMessage(Number(roomId));
+        }
+      }
+    }
+  }, [roomId, user, data, activeElement]);
 
   const queryClient = useQueryClient();
 
@@ -134,7 +163,6 @@ const BoxChat = () => {
     }
   );
 
-
   React.useEffect(() => {
     socket.current?.on("get-new-message-cr2", (roomMess: any) => {
       if (data && data.room_messes && roomMess.roomId == roomId) {
@@ -145,44 +173,64 @@ const BoxChat = () => {
       }
 
       let listChatOld: any = queryClient.getQueryData(["get-list-chat", user]);
-      const currentChat = listChatOld.find(
-        (item: any) => item.id === roomMess.roomId
-      );
-      if (currentChat) {
-        const newListChat = [
-          {
-            ...currentChat,
-            messageId: roomMess.messageId,
-            message: roomMess.message,
-          },
-          ...listChatOld.filter((item: any) => item.id !== roomMess.roomId),
-        ];
-        queryClient.setQueryData(["get-list-chat", user], newListChat);
+      if (listChatOld) {
+        const currentChat = listChatOld?.find(
+          (item: any) => item.id === roomMess.roomId
+        );
+        if (currentChat) {
+          const newListChat = [
+            {
+              ...currentChat,
+              messageId: roomMess.messageId,
+              message: roomMess.message,
+            },
+            ...listChatOld.filter((item: any) => item.id !== roomMess.roomId),
+          ];
+          queryClient.setQueryData(["get-list-chat", user], newListChat);
+        }
       }
-
-      if(roomMess.roomId != roomId){
-        play()
-      }
-
     });
 
-    socket?.current?.on('get-recall-message',(result:{receiveId:number, messageId:number}) => {
-      if (data && data.room_messes && user?.id === result.receiveId) {
-        queryClient.setQueryData(["box-chat", Number(roomId)], {
-          ...data,
-          room_messes: data.room_messes.map((item: any) => {
-            if (item.id == Number(result.messageId)) {
-              return { ...item, message: { ...item.message, status: false } };
+    //SOCKET - Bắt sự kiện thu hồi tin nhắn realtime.
+    socket?.current?.on(
+      "get-recall-message",
+      (result: { receiveId: number; messageId: number }) => {
+        if (data && data.room_messes && user?.id === result.receiveId) {
+          queryClient.setQueryData(["box-chat", Number(roomId)], {
+            ...data,
+            room_messes: data.room_messes.map((item: any) => {
+              if (item.id == Number(result.messageId)) {
+                return { ...item, message: { ...item.message, status: false } };
+              }
+              return item;
+            }),
+          });
+        }
+      }
+    );
+
+    //SOCKET - Bắt sự kiện lấy thông tin tin nhắn đã xem
+    socket?.current?.on(
+      "get-seen-message",
+      (result: { receiveId: number; listMessage: number[] }) => {
+        if (data) {
+          const newRoomMess = data.room_messes.map((item) => {
+            if (result.listMessage.includes(item.messageId)) {
+              return { ...item, message: { ...item.message, isSeen: true } };
             }
             return item;
-          }),
-        });
+          })
+          queryClient.setQueryData(["box-chat", Number(roomId)], {
+            ...data,
+            room_messes: newRoomMess,
+          });
+        }
       }
-    })
-    
-  }, [socket.current,data]);
+    );
+  }, [socket.current, data]);
 
   React.useEffect(() => {
+    //SOCKET - Bắt sự kiện thả cảm xúc realtime.
     socket?.current?.on(
       "get-react-message",
       (result: {
@@ -192,65 +240,71 @@ const BoxChat = () => {
         id: number | string;
         receiveId: number;
       }) => {
-     
-          const currentMessage = data?.room_messes?.find((item:any) => item.messageId == result.messageId)
-          const isReact = currentMessage?.message.mess_reacts.find((item:any) => {
+        const currentMessage = data?.room_messes?.find(
+          (item: any) => item.messageId == result.messageId
+        );
+        const isReact = currentMessage?.message.mess_reacts.find(
+          (item: any) => {
             return item.id === result.id;
-          });
+          }
+        );
 
-          if (isReact) {
-            let newMessageReact:any = []
-            if(isReact.react == result.react){
-              newMessageReact = currentMessage?.message.mess_reacts.filter((item:any) => item.id !== result.id)
-            }else{
-              newMessageReact = currentMessage?.message.mess_reacts.map((item:any) => {
+        if (isReact) {
+          let newMessageReact: any = [];
+          if (isReact.react == result.react) {
+            newMessageReact = currentMessage?.message.mess_reacts.filter(
+              (item: any) => item.id !== result.id
+            );
+          } else {
+            newMessageReact = currentMessage?.message.mess_reacts.map(
+              (item: any) => {
                 if (item.id === result.id) {
                   return { ...item, react: result.react };
                 }
                 return item;
-              });
-            }
-            queryClient.setQueryData(["box-chat", Number(roomId)], {
-              ...data,
-              room_messes: data?.room_messes.map((item: any) => {
-                if (item.messageId === Number(result.messageId)) {
-                  return {
-                    ...item,
-                    message: { ...item.message, mess_reacts: newMessageReact },
-                  };
-                }
-                return item;
-              }),
-            });
-          } else {
-            queryClient.setQueryData(["box-chat", Number(roomId)], {
-              ...data,
-              room_messes: data?.room_messes.map((item: any) => {
-                if (item.messageId == Number(result.messageId)) {
-                  return {
-                    ...item,
-                    message: {
-                      ...item.message,
-                      mess_reacts: [
-                        ...item.message.mess_reacts,
-                        {
-                          messageId: Number(result.messageId),
-                          userId: result.userId,
-                          react: result.react,
-                          id: result.id,
-                        },
-                      ],
-                    },
-                  };
-                }
-                return item;
-              }),
-            });
+              }
+            );
           }
+          queryClient.setQueryData(["box-chat", Number(roomId)], {
+            ...data,
+            room_messes: data?.room_messes.map((item: any) => {
+              if (item.messageId === Number(result.messageId)) {
+                return {
+                  ...item,
+                  message: { ...item.message, mess_reacts: newMessageReact },
+                };
+              }
+              return item;
+            }),
+          });
+        } else {
+          queryClient.setQueryData(["box-chat", Number(roomId)], {
+            ...data,
+            room_messes: data?.room_messes.map((item: any) => {
+              if (item.messageId == Number(result.messageId)) {
+                return {
+                  ...item,
+                  message: {
+                    ...item.message,
+                    mess_reacts: [
+                      ...item.message.mess_reacts,
+                      {
+                        messageId: Number(result.messageId),
+                        userId: result.userId,
+                        react: result.react,
+                        id: result.id,
+                      },
+                    ],
+                  },
+                };
+              }
+              return item;
+            }),
+          });
         }
+      }
     );
-  }, [socket.current,data]);
-
+  }, [socket.current, data]);
 
   React.useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
@@ -301,7 +355,11 @@ const BoxChat = () => {
                     }`}
                   >
                     <div className="w-12 md:w-14 rounded-full">
-                      <LazyLoadImage className="rounded-full" effect="blur" src={dataRender.image} />
+                      <LazyLoadImage
+                        className="rounded-full"
+                        effect="blur"
+                        src={dataRender.image}
+                      />
                     </div>
                   </div>
                 ) : (
@@ -351,11 +409,21 @@ const BoxChat = () => {
             {data?.room_messes.map((item) =>
               item.userId === user?.id ? (
                 <div key={item.id} ref={scroll}>
-                  <CardMessage receiveId={dataRender.activeId} {...item} type="end" />
+                  <CardMessage
+                    receiveId={dataRender.activeId}
+                    avatarReceive={dataRender.avatarReceive}
+                    {...item}
+                    type="end"
+                  />
                 </div>
               ) : (
                 <div key={item.id} ref={scroll}>
-                  <CardMessage receiveId={dataRender.activeId} {...item} type="start" />
+                  <CardMessage
+                    receiveId={dataRender.activeId}
+                    avatarReceive={dataRender.avatarReceive}
+                    {...item}
+                    type="start"
+                  />
                 </div>
               )
             )}
@@ -375,7 +443,12 @@ const BoxChat = () => {
                 <AiOutlinePlus className="text-primary text-[24px] md:text-[28px]" />
               </div>
             </label>
-            <input type="file" className="hidden" accept="image/*" id="messageImage" />
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              id="messageImage"
+            />
             <input
               type="text"
               value={textMessage}

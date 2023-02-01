@@ -13,6 +13,7 @@ interface IMessageAction {
     react: string;
     id: number | string;
   }>;
+  seenMessage:(roomId:number) => Promise<number[]>
 }
 
 const MessageAction: IMessageAction = {
@@ -30,6 +31,10 @@ const MessageAction: IMessageAction = {
     });
     return result.data;
   },
+  seenMessage:async(roomId) => {
+    const result = await server.get(`/message/seen/${roomId}`)
+    return result.data
+  }
 };
 
 export default MessageAction;

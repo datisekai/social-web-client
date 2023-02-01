@@ -14,6 +14,7 @@ import Lodash from "lodash";
 interface CardMessageProps extends RoomMess {
   type?: string;
   receiveId: number;
+  avatarReceive:string
 }
 
 const CardMessage: FC<CardMessageProps> = ({
@@ -26,6 +27,7 @@ const CardMessage: FC<CardMessageProps> = ({
   updatedAt,
   userId,
   receiveId,
+  avatarReceive
 }) => {
   const { user, socket } = React.useContext(AuthContext);
 
@@ -81,10 +83,12 @@ const CardMessage: FC<CardMessageProps> = ({
         Number(roomId),
       ]);
       if (isReact) {
-        let newMessageReact:any = []
-        if(isReact.react == data.react){
-            newMessageReact = message.mess_reacts.filter(item => item.id !== data.id);
-        }else{
+        let newMessageReact: any = [];
+        if (isReact.react == data.react) {
+          newMessageReact = message.mess_reacts.filter(
+            (item) => item.id !== data.id
+          );
+        } else {
           newMessageReact = message.mess_reacts.map((item) => {
             if (item.id === data.id) {
               return { ...item, react: data.react };
@@ -92,7 +96,6 @@ const CardMessage: FC<CardMessageProps> = ({
             return item;
           });
         }
-        
 
         queryClient.setQueryData(["box-chat", Number(roomId)], {
           ...boxChatOld,
@@ -137,8 +140,6 @@ const CardMessage: FC<CardMessageProps> = ({
     onError: () => {},
   });
 
-
-
   const handleReaction = (react: string) => {
     dropReact({ messageId, react });
     document?.activeElement && (document?.activeElement as any)?.blur();
@@ -161,7 +162,6 @@ const CardMessage: FC<CardMessageProps> = ({
       },
       []
     );
-
 
     return {
       isMany: reacts.length > 0,
@@ -189,7 +189,7 @@ const CardMessage: FC<CardMessageProps> = ({
 
       <div
         className={`flex items-center ${
-          user.id === userId ? "flex-row" : "flex-row-reverse"
+          user?.id === userId ? "flex-row" : "flex-row-reverse"
         }`}
       >
         {message?.status && (
@@ -208,22 +208,29 @@ const CardMessage: FC<CardMessageProps> = ({
               }`}
             >
               {reactionGif.map((item) => {
-                const isUser = message.mess_reacts.some(element => element.react == item.id && element.userId === user?.id);
-                return  <li
-                onClick={() => handleReaction(item.id)}
-                key={item.id}
-                className={`cursor-pointer ${isUser && 'translate-y-[-2px] bg-primary'}`}
-              >
-                <a>
-                  <div className="w-[25px] h-[25px]">
-                    <LazyLoadImage
-                      effect="blur"
-                      src={item.image}
-                      alt={item.id}
-                    />
-                  </div>
-                </a>
-              </li>
+                const isUser = message.mess_reacts.some(
+                  (element) =>
+                    element.react == item.id && element.userId === user?.id
+                );
+                return (
+                  <li
+                    onClick={() => handleReaction(item.id)}
+                    key={item.id}
+                    className={`cursor-pointer ${
+                      isUser && "translate-y-[-2px] bg-primary"
+                    }`}
+                  >
+                    <a>
+                      <div className="w-[25px] h-[25px]">
+                        <LazyLoadImage
+                          effect="blur"
+                          src={item.image}
+                          alt={item.id}
+                        />
+                      </div>
+                    </a>
+                  </li>
+                );
               })}
             </ul>
           </div>
@@ -293,7 +300,12 @@ const CardMessage: FC<CardMessageProps> = ({
           )}
         </div>
       </div>
-      <div className="chat-footer text-xs opacity-50 mt-1">Đã gửi</div>
+      {userId === user?.id && (
+        <div className="chat-footer text-xs opacity-50 mt-1 flex items-center space-x-1">
+          {message.isSeen && <LazyLoadImage src={avatarReceive} className='w-4 h-4 rounded-full'/>}
+          <span>{message.isSeen ? "Đã xem" : "Đã gửi"}</span>
+        </div>
+      )}
     </div>
   );
 };

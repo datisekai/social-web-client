@@ -74,7 +74,6 @@ const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
     deleteCookie("token");
     router.reload();
     socket.current.disconnect();
-    
   };
 
   React.useEffect(() => {
@@ -82,6 +81,8 @@ const ChatLayout: FC<ChatLayoutProps> = ({ children }) => {
       ?.querySelector("html")
       ?.setAttribute("data-theme", getLocal("data-theme"));
     setTheme(getLocal("data-theme"));
+
+ 
   }, []);
 
   const handleChangeTheme = (newTheme: string) => {

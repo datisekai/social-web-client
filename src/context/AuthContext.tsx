@@ -1,4 +1,5 @@
 import { SOCKET_URL } from "@/actions";
+import useAudio from "@/components/hooks/useAudio";
 import { UserModel } from "@/model/User.model";
 import React, { createContext } from "react";
 import { io } from "socket.io-client";
@@ -25,6 +26,24 @@ const AuthContextProvider: React.FC<AuthProps> = ({ children }) => {
     }
   }, [user]);
 
+  React.useEffect(() => {
+    if (!("Notification" in window)) {
+      console.error("This browser does not support notifications.");
+    } else if (Notification.permission === "granted") {
+      console.log("Notification permission has been granted.");
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          console.log("Notification permission has been granted.");
+        } else {
+          console.error("Notification permission has been denied.");
+        }
+      });
+    }
+
+
+
+  }, []);
 
   return (
     <AuthContext.Provider

@@ -9,13 +9,13 @@ interface RoomUser {
   user: UserModel;
 }
 
-interface MessageReact{
-    id?:number,
-    createdAt?:Date,
-    updatedAt?:Date,
-    react:string,
-    messageId:number,
-    userId:number
+interface MessageReact {
+  id?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  react: string;
+  messageId: number;
+  userId: number;
 }
 
 export interface Message {
@@ -28,6 +28,7 @@ export interface Message {
   updatedAt: Date;
   user: UserModel;
   mess_reacts: MessageReact[];
+  isSeen: boolean;
 }
 
 export interface RoomMess {
@@ -38,7 +39,7 @@ export interface RoomMess {
   createdAt: Date;
   updatedAt: Date;
   message: Message;
-  user?:UserModel
+  user?: UserModel;
 }
 
 export interface RoomMessageModel {
