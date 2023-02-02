@@ -39,6 +39,25 @@ const CardChat: React.FC<RoomModel> = ({
     };
   }, [room_users, userOnline]);
 
+
+  const messageRender = React.useMemo(() => {
+    let currentMessage = 'Kết nối bạn bè qua FIRECHAT'
+
+    if(messageId != null){
+      if(message?.status){
+        if(message.type === 'text'){
+          currentMessage = `${message.userId === user?.id ? 'Bạn' : message.user?.name}: ${message.content}`
+        }else if(message.type === 'image'){
+          currentMessage = `${message.userId === user?.id ? 'Bạn' : message.user?.name}: Đã gửi 1 ảnh`
+        }
+      }else{
+        currentMessage = `${message?.userId === user?.id ? 'Bạn' : message?.user?.name}: Tin nhắn đã thu hồi`
+      }
+    }
+
+    return currentMessage;
+  },[message])
+
   return (
     <div
       className={`flex py-2 px-1 hover:bg-base-300 cursor-pointer rounded-md items-center space-x-2 ${
@@ -53,7 +72,11 @@ const CardChat: React.FC<RoomModel> = ({
           }`}
         >
           <div className="w-14 rounded-full">
-            <LazyLoadImage effect="blur" className="rounded-full" src={dataRender.image} />
+            <LazyLoadImage
+              effect="blur"
+              className="rounded-full"
+              src={dataRender.image}
+            />
           </div>
         </div>
       ) : (
@@ -67,9 +90,7 @@ const CardChat: React.FC<RoomModel> = ({
       <div className="space-y-1">
         <h3>{dataRender.name}</h3>
         <p className="text-sm line-clamp-1">
-          {messageId != null
-            ? message?.status ? `${message?.user?.name}: ${message?.content}` : `${message?.user?.name}: Tin nhắn đã thu hồi`
-            : "Kết nối bạn bè qua FIRECHAT"}
+          {messageRender}
         </p>
       </div>
     </div>

@@ -14,7 +14,7 @@ import Lodash from "lodash";
 interface CardMessageProps extends RoomMess {
   type?: string;
   receiveId: number;
-  avatarReceive:string
+  avatarReceive: string;
 }
 
 const CardMessage: FC<CardMessageProps> = ({
@@ -27,7 +27,7 @@ const CardMessage: FC<CardMessageProps> = ({
   updatedAt,
   userId,
   receiveId,
-  avatarReceive
+  avatarReceive,
 }) => {
   const { user, socket } = React.useContext(AuthContext);
 
@@ -268,11 +268,32 @@ const CardMessage: FC<CardMessageProps> = ({
         )}
 
         <div
-          className={`chat-bubble max-w-full md:max-w-sm ${
-            type === "end" && "chat-bubble-primary"
-          }`}
+          className={`${
+            message.type === "text" && "chat-bubble"
+          }  relative max-w-full md:max-w-sm text-ellipsis  ${
+            type === "end" &&
+            (message.isSeen
+              ? message.type === "text" && "chat-bubble-primary"
+              : "chat-bubble-primary")
+          } ${!message.isSeen && "chat-bubble"}`}
         >
-          {message?.status ? message?.content : "Tin nhắn đã thu hồi"}
+          {message.type === "text" && (
+            <span className="">
+              {message?.status ? message?.content : "Tin nhắn đã thu hồi"}
+            </span>
+          )}
+          {message.type === "image" && (
+            <div className="rounded-lg max-w-sm">
+              {message?.status ? (
+                <LazyLoadImage
+                  className="w-full h-[200px]"
+                  src={message.content}
+                />
+              ) : (
+                "Tin nhắn đã thu hồi"
+              )}
+            </div>
+          )}
           {message?.status && reactDifference?.reacts?.length > 0 && (
             <div
               className={`absolute bg-base-300  flex space-x-[2px] px-1 py-[2px] items-center rounded-full ${
@@ -294,7 +315,9 @@ const CardMessage: FC<CardMessageProps> = ({
                 </div>
               ))}
               {reactDifference.isMany && (
-                <span className="text-xs">{message.mess_reacts.length}</span>
+                <span className="text-xs text-primary">
+                  {message.mess_reacts.length}
+                </span>
               )}
             </div>
           )}
@@ -302,7 +325,12 @@ const CardMessage: FC<CardMessageProps> = ({
       </div>
       {userId === user?.id && (
         <div className="chat-footer text-xs opacity-50 mt-1 flex items-center space-x-1">
-          {message.isSeen && <LazyLoadImage src={avatarReceive} className='w-4 h-4 rounded-full'/>}
+          {message.isSeen && (
+            <LazyLoadImage
+              src={avatarReceive}
+              className="w-4 h-4 rounded-full"
+            />
+          )}
           <span>{message.isSeen ? "Đã xem" : "Đã gửi"}</span>
         </div>
       )}

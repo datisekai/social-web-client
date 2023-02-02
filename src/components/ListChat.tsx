@@ -1,10 +1,12 @@
 import RoomAction from "@/actions/Room.action";
 import { AuthContext } from "@/context/AuthContext";
+import { RoomModel } from "@/model/Room.model";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CardChat from "./Chat/CardChat";
 import useAudio from "./hooks/useAudio";
+import useDebounce from "./hooks/useDebounce";
 import Sidebar from "./Sidebar";
 import CardChatSkeleton from "./skeleton/CardChatSkeleton";
 
@@ -12,13 +14,18 @@ const ListChat = () => {
   const { user, socket } = React.useContext(AuthContext);
   const queryClient = useQueryClient();
 
+  const [search, setSearch] = useState("");
+
+  const [chatSearch, setChatSearch] = useState<RoomModel[]>([]);
+
+  const debounceSearch = useDebounce(search, 500);
+
   const [isOpenSidebar, setIsOpenSidebar] = React.useState(false);
 
   const { data, isLoading } = useQuery(
     ["get-list-chat", user],
     RoomAction.userRoom
   );
-
 
   React.useEffect(() => {
     socket.current?.on("get-new-room-cr2", (newRoom: any) => {
@@ -41,6 +48,29 @@ const ListChat = () => {
       }
     });
   }, [data]);
+
+  useEffect(() => {
+    if (debounceSearch.trim().length > 0) {
+      const resultSearch =
+        data?.filter(
+          (item) =>
+            item.messageId != null &&
+            (item.message?.content
+              .toLowerCase()
+              .indexOf(debounceSearch.toLowerCase()) !== -1 ||
+              item.room_users.some(
+                (element) =>
+                  element.user.name
+                    .toLowerCase()
+                    .indexOf(debounceSearch.toLowerCase()) !== -1
+              ))
+        ) || [];
+
+      setChatSearch(resultSearch);
+    } else {
+      setChatSearch([]);
+    }
+  }, [debounceSearch]);
 
   return (
     <div className="h-full">
@@ -81,21 +111,38 @@ const ListChat = () => {
           <input
             type="text"
             placeholder="Tìm kiếm"
+            onChange={(e) => setSearch(e.target.value)}
+            value={search}
             className="input input-bordered input-primary w-full max-w-full md:max-w-sm"
           />
         </section>
       </div>
-      <section className=" mt-4 space-y-1 h-[85%] overflow-y-scroll">
-        {isLoading
-          ? [1, 2, 3, 4, 5].map((item) => <CardChatSkeleton key={item} />)
-          : data?.map((item) => (
-              <div key={item.id}>
-                <Link href={`/chat/${item.id}`}>
-                  <CardChat {...item} />
-                </Link>
-              </div>
-            ))}
-      </section>
+      {debounceSearch.trim().length > 0 ? (
+        <section className=" mt-4 space-y-1 h-[85%] overflow-y-scroll">
+          {chatSearch.map((item) => (
+            <div key={item.id}>
+              <Link href={`/chat/${item.id}`}>
+                <CardChat {...item} />
+              </Link>
+            </div>
+          ))}
+        </section>
+      ) : (
+        <section className=" mt-4 space-y-1 h-[85%] overflow-y-scroll">
+          {isLoading
+            ? [1, 2, 3, 4, 5].map((item) => <CardChatSkeleton key={item} />)
+            : data?.map((item) => (
+                <div key={item.id}>
+                  <Link href={`/chat/${item.id}`}>
+                    <CardChat {...item} />
+                  </Link>
+                </div>
+              ))}
+          {data && data.length === 0 && (
+            <p className="text-center">Chọn bạn bè ở tab friend để nhắn tin</p>
+          )}
+        </section>
+      )}
       <Sidebar
         open={isOpenSidebar}
         handleClose={() => setIsOpenSidebar(false)}

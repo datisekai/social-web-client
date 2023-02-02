@@ -1,26 +1,25 @@
-import React, { useEffect } from "react";
-import { MdCall } from "react-icons/md";
-import {
-  BsFillCameraVideoFill,
-  BsImage,
-  BsThreeDots,
-  BsEmojiSmileFill,
-} from "react-icons/bs";
-import CardMessage from "./CardMessage";
-import { AiFillFile, AiOutlinePlus } from "react-icons/ai";
-import EmojiPicker from "emoji-picker-react";
-import Tippy from "@tippyjs/react/headless";
-import { reactLocalStorage } from "reactjs-localstorage";
-import { useRouter } from "next/router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { uploadCloudinary } from "@/actions";
+import MessageAction from "@/actions/Message.action";
 import RoomAction from "@/actions/Room.action";
 import { AuthContext } from "@/context/AuthContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Tippy from "@tippyjs/react/headless";
+import EmojiPicker from "emoji-picker-react";
+import { useRouter } from "next/router";
+import React, { useState } from "react";
+import { AiOutlinePlus } from "react-icons/ai";
 import { BiArrowBack, BiSend } from "react-icons/bi";
-import MessageAction from "@/actions/Message.action";
-import useWindowSize from "../hooks/useWindowSize";
+import {
+  BsEmojiSmileFill,
+  BsFillCameraVideoFill,
+  BsThreeDots,
+} from "react-icons/bs";
+import { MdCall } from "react-icons/md";
 import { LazyLoadImage } from "react-lazy-load-image-component";
-import useAudio from "../hooks/useAudio";
 import useActiveElement from "../hooks/useActiveElement";
+import useWindowSize from "../hooks/useWindowSize";
+import CardMessage from "./CardMessage";
+import Spinner from "../Loading/Spinner";
 
 const BoxChat = () => {
   const [showEmoji, setShowEmoji] = React.useState(false);
@@ -31,7 +30,6 @@ const BoxChat = () => {
   const { roomId = 0 } = router.query;
 
   const { user, userOnline, socket } = React.useContext(AuthContext);
-  const [play] = useAudio("/audios/notify.mp3");
 
   const { data, isLoading } = useQuery(["box-chat", Number(roomId)], () => {
     if (roomId !== 0) {
@@ -39,6 +37,10 @@ const BoxChat = () => {
     }
     return null;
   });
+
+  const [loadingImage, setLoadingImage] = useState(false);
+
+  const [file, setFile] = useState<File>();
 
   const { height } = useWindowSize();
 
@@ -57,7 +59,7 @@ const BoxChat = () => {
     let currentName = data?.name;
     let currentImage = data?.image;
     let activeId = 0;
-    let avatarReceive = ''
+    let avatarReceive = "";
 
     if (user && data) {
       if (!currentName) {
@@ -93,7 +95,7 @@ const BoxChat = () => {
       name: currentName,
       image: currentImage,
       activeId,
-      avatarReceive
+      avatarReceive,
     };
   }, [data, userOnline]);
 
@@ -219,7 +221,7 @@ const BoxChat = () => {
               return { ...item, message: { ...item.message, isSeen: true } };
             }
             return item;
-          })
+          });
           queryClient.setQueryData(["box-chat", Number(roomId)], {
             ...data,
             room_messes: newRoomMess,
@@ -316,6 +318,21 @@ const BoxChat = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (file) {
+      handleSendImage();
+    }
+  }, [file]);
+
+  const handleSendImage = async () => {
+    if (file) {
+      setLoadingImage(true);
+      const imageUrl = await uploadCloudinary(file);
+      setLoadingImage(false);
+      send({ content: imageUrl, type: "image", roomId });
+    }
+  };
+
   const scroll = React.useRef<any>(null);
 
   const header = React.useRef<any>(null);
@@ -331,7 +348,12 @@ const BoxChat = () => {
   return (
     <>
       {roomId ? (
-        <div className="w-full h-full">
+        <div className="w-full h-full ">
+          {loadingImage && (
+            <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.6)] z-[100]">
+              <Spinner />
+            </div>
+          )}
           <header
             ref={header}
             className="sticky top-0 py-2 bg-base-100 z-[50] shadow-lg flex items-center justify-between"
@@ -432,12 +454,6 @@ const BoxChat = () => {
             ref={toolChat}
             className=" shadow-md py-2 bottom-0 justify-between flex items-center space-x-2"
           >
-            {/* <div className="hidden md:block p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full">
-              <BsImage className="text-primary text-[24px] md:text-[28px]" />
-            </div> */}
-            {/* <div className="hidden md:block p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full">
-              <AiFillFile className="text-primary text-[24px] md:text-[28px]" />
-            </div> */}
             <label htmlFor="messageImage">
               <div className=" p-1 md:p-2 hover:bg-primary-content cursor-pointer rounded-full">
                 <AiOutlinePlus className="text-primary text-[24px] md:text-[28px]" />
@@ -446,6 +462,9 @@ const BoxChat = () => {
             <input
               type="file"
               className="hidden"
+              onChange={(e) =>
+                e.target && e.target.files && setFile(e.target.files[0])
+              }
               accept="image/*"
               id="messageImage"
             />
