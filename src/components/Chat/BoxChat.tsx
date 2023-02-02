@@ -105,6 +105,18 @@ const BoxChat = () => {
         receiveId: dataRender.activeId,
         listMessage: data,
       });
+
+      let listChatOld: any = queryClient.getQueryData(["get-list-chat", user]);
+      if (listChatOld) {
+        const newListChat = listChatOld?.map((item: any) => {
+          if (data.includes(item.messageId)) {
+            return { ...item, message: { ...item.message, isSeen: true } };
+          }
+          return item;
+        });
+
+        queryClient.setQueryData(["get-list-chat", user], newListChat);
+      }
     },
   });
 
@@ -425,7 +437,7 @@ const BoxChat = () => {
             </div>
           </header>
           <div
-            className=" px-2  mt-2 overflow-y-scroll"
+            className=" px-2  mt-2 overflow-y-scroll overflow-x-hidden"
             style={{ height: boxChatHeight }}
           >
             {data?.room_messes.map((item) =>

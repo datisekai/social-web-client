@@ -20,3 +20,16 @@ body{
         opacity: 1;
     }
 }
+
+.not-seen::after{
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    background-color: #36D399;
+    position: absolute;
+    display: block;
+    right: 16px;
+    top:50%;
+    transform: translateY(-50%);
+}

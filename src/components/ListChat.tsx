@@ -72,6 +72,8 @@ const ListChat = () => {
     }
   }, [debounceSearch]);
 
+  console.log(data)
+
   return (
     <div className="h-full">
       <div className=" bg-base-100  py-2 md:py-0">

@@ -40,6 +40,7 @@ const CardChat: React.FC<RoomModel> = ({
   }, [room_users, userOnline]);
 
 
+
   const messageRender = React.useMemo(() => {
     let currentMessage = 'Kết nối bạn bè qua FIRECHAT'
 
@@ -60,7 +61,7 @@ const CardChat: React.FC<RoomModel> = ({
 
   return (
     <div
-      className={`flex py-2 px-1 hover:bg-base-300 cursor-pointer rounded-md items-center space-x-2 ${
+      className={`flex py-2 px-1 relative ${!message?.isSeen && dataRender.receiveId === message?.userId && 'not-seen'} hover:bg-base-300 cursor-pointer rounded-md items-center space-x-2 ${
         Number(roomId) === id && "bg-base-300"
       }`}
     >
@@ -87,7 +88,7 @@ const CardChat: React.FC<RoomModel> = ({
         </div>
       )}
 
-      <div className="space-y-1">
+      <div className={`space-y-1  ${!message?.isSeen && dataRender.receiveId === message?.userId && 'text-primary'}`}>
         <h3>{dataRender.name}</h3>
         <p className="text-sm line-clamp-1">
           {messageRender}

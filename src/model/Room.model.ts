@@ -18,6 +18,7 @@ interface Message {
   createdAt: Date;
   updatedAt: Date;
   user?:UserModel
+  isSeen:boolean
 }
 
 interface RoomMess {

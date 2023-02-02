@@ -272,10 +272,10 @@ const CardMessage: FC<CardMessageProps> = ({
             message.type === "text" && "chat-bubble"
           }  relative max-w-full md:max-w-sm text-ellipsis  ${
             type === "end" &&
-            (message.isSeen
+            (message.status
               ? message.type === "text" && "chat-bubble-primary"
               : "chat-bubble-primary")
-          } ${!message.isSeen && "chat-bubble"}`}
+          } ${!message.status && "chat-bubble"}`}
         >
           {message.type === "text" && (
             <span className="">
