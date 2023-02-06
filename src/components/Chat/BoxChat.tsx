@@ -179,14 +179,16 @@ const BoxChat = () => {
 
   React.useEffect(() => {
     socket.current?.on("get-new-message-cr2", (roomMess: any) => {
-      const notify = new Notification("[FIRECHAT] Bạn có thông báo mới", {
-        body: roomMess.message.content,
-      });
-
       if (data && data.room_messes && roomMess.roomId == roomId) {
         queryClient.setQueryData(["box-chat", Number(roomId)], {
           ...data,
           room_messes: [...data?.room_messes, roomMess],
+        });
+      }
+
+      if (activeElement != inputRef.current || roomMess.roomId !== roomId) {
+        new Notification(`[FIRECHAT] Bạn có tin nhắn mới`, {
+          body: `${roomMess.user.name}: ${roomMess.message.content}`,
         });
       }
 
@@ -245,7 +247,7 @@ const BoxChat = () => {
         }
       }
     );
-  }, [socket.current, data]);
+  }, [socket.current]);
 
   React.useEffect(() => {
     //SOCKET - Bắt sự kiện thả cảm xúc realtime.
