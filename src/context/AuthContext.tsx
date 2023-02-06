@@ -41,8 +41,6 @@ const AuthContextProvider: React.FC<AuthProps> = ({ children }) => {
       });
     }
 
-
-
   }, []);
 
   return (

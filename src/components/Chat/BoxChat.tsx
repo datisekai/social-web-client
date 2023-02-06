@@ -179,6 +179,10 @@ const BoxChat = () => {
 
   React.useEffect(() => {
     socket.current?.on("get-new-message-cr2", (roomMess: any) => {
+      const notify = new Notification("[FIRECHAT] Bạn có thông báo mới", {
+        body: roomMess.message.content,
+      });
+
       if (data && data.room_messes && roomMess.roomId == roomId) {
         queryClient.setQueryData(["box-chat", Number(roomId)], {
           ...data,
