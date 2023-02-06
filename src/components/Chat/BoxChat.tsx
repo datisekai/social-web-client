@@ -178,75 +178,99 @@ const BoxChat = () => {
   );
 
   React.useEffect(() => {
-    socket.current?.on("get-new-message-cr2", (roomMess: any) => {
-      if (data && data.room_messes && roomMess.roomId == roomId) {
-        queryClient.setQueryData(["box-chat", Number(roomId)], {
-          ...data,
-          room_messes: [...data?.room_messes, roomMess],
-        });
-      }
-
-      if (activeElement != inputRef.current || roomMess.roomId !== roomId) {
-        new Notification(`[FIRECHAT] Bạn có tin nhắn mới`, {
-          body: `${roomMess.user.name}: ${roomMess.message.content}`,
-        });
-      }
-
-      let listChatOld: any = queryClient.getQueryData(["get-list-chat", user]);
-      if (listChatOld) {
-        const currentChat = listChatOld?.find(
-          (item: any) => item.id === roomMess.roomId
-        );
-        if (currentChat) {
-          const newListChat = [
-            {
-              ...currentChat,
-              messageId: roomMess.messageId,
-              message: roomMess.message,
-            },
-            ...listChatOld.filter((item: any) => item.id !== roomMess.roomId),
-          ];
-          queryClient.setQueryData(["get-list-chat", user], newListChat);
-        }
-      }
-    });
-
-    //SOCKET - Bắt sự kiện thu hồi tin nhắn realtime.
-    socket?.current?.on(
-      "get-recall-message",
-      (result: { receiveId: number; messageId: number }) => {
-        if (data && data.room_messes && user?.id === result.receiveId) {
+    if (socket.current) {
+      socket.current?.on("get-new-message-cr2", (roomMess: any) => {
+        if (roomMess.roomId === +roomId) {
+          const boxChatOld: any = queryClient.getQueryData([
+            "box-chat",
+            Number(roomId),
+          ]);
           queryClient.setQueryData(["box-chat", Number(roomId)], {
-            ...data,
-            room_messes: data.room_messes.map((item: any) => {
-              if (item.id == Number(result.messageId)) {
-                return { ...item, message: { ...item.message, status: false } };
+            ...boxChatOld,
+            room_messes: [...boxChatOld?.room_messes, roomMess],
+          });
+        }
+
+        if (activeElement != inputRef.current || roomMess.roomId !== roomId) {
+          new Notification(`[FIRECHAT] Bạn có tin nhắn mới`, {
+            body: `${roomMess.user.name}: ${roomMess.message.content}`,
+          });
+        }
+
+        let listChatOld: any = queryClient.getQueryData([
+          "get-list-chat",
+          user,
+        ]);
+        if (listChatOld) {
+          const currentChat = listChatOld?.find(
+            (item: any) => item.id === roomMess.roomId
+          );
+          if (currentChat) {
+            const newListChat = [
+              {
+                ...currentChat,
+                messageId: roomMess.messageId,
+                message: roomMess.message,
+              },
+              ...listChatOld.filter((item: any) => item.id !== roomMess.roomId),
+            ];
+            queryClient.setQueryData(["get-list-chat", user], newListChat);
+          }
+        }
+      });
+
+      //SOCKET - Bắt sự kiện thu hồi tin nhắn realtime.
+      socket?.current?.on(
+        "get-recall-message",
+        (result: { receiveId: number; messageId: number }) => {
+          const boxChatOld: any = queryClient.getQueryData([
+            "box-chat",
+            Number(roomId),
+          ]);
+          if (
+            boxChatOld &&
+            boxChatOld.room_messes &&
+            user?.id === result.receiveId
+          ) {
+            queryClient.setQueryData(["box-chat", Number(roomId)], {
+              ...data,
+              room_messes: boxChatOld.room_messes.map((item: any) => {
+                if (item.id == Number(result.messageId)) {
+                  return {
+                    ...item,
+                    message: { ...item.message, status: false },
+                  };
+                }
+                return item;
+              }),
+            });
+          }
+        }
+      );
+
+      //SOCKET - Bắt sự kiện lấy thông tin tin nhắn đã xem
+      socket?.current?.on(
+        "get-seen-message",
+        (result: { receiveId: number; listMessage: number[] }) => {
+          const boxChatOld: any = queryClient.getQueryData([
+            "box-chat",
+            Number(roomId),
+          ]);
+          if (boxChatOld) {
+            const newRoomMess = boxChatOld.room_messes.map((item: any) => {
+              if (result.listMessage.includes(item.messageId)) {
+                return { ...item, message: { ...item.message, isSeen: true } };
               }
               return item;
-            }),
-          });
+            });
+            queryClient.setQueryData(["box-chat", Number(roomId)], {
+              ...boxChatOld,
+              room_messes: newRoomMess,
+            });
+          }
         }
-      }
-    );
-
-    //SOCKET - Bắt sự kiện lấy thông tin tin nhắn đã xem
-    socket?.current?.on(
-      "get-seen-message",
-      (result: { receiveId: number; listMessage: number[] }) => {
-        if (data) {
-          const newRoomMess = data.room_messes.map((item) => {
-            if (result.listMessage.includes(item.messageId)) {
-              return { ...item, message: { ...item.message, isSeen: true } };
-            }
-            return item;
-          });
-          queryClient.setQueryData(["box-chat", Number(roomId)], {
-            ...data,
-            room_messes: newRoomMess,
-          });
-        }
-      }
-    );
+      );
+    }
   }, [socket.current]);
 
   React.useEffect(() => {
@@ -260,7 +284,11 @@ const BoxChat = () => {
         id: number | string;
         receiveId: number;
       }) => {
-        const currentMessage = data?.room_messes?.find(
+        const boxChatOld: any = queryClient.getQueryData([
+          "box-chat",
+          Number(roomId),
+        ]);
+        const currentMessage = boxChatOld?.room_messes?.find(
           (item: any) => item.messageId == result.messageId
         );
         const isReact = currentMessage?.message.mess_reacts.find(
@@ -287,7 +315,7 @@ const BoxChat = () => {
           }
           queryClient.setQueryData(["box-chat", Number(roomId)], {
             ...data,
-            room_messes: data?.room_messes.map((item: any) => {
+            room_messes: boxChatOld?.room_messes.map((item: any) => {
               if (item.messageId === Number(result.messageId)) {
                 return {
                   ...item,
@@ -299,8 +327,8 @@ const BoxChat = () => {
           });
         } else {
           queryClient.setQueryData(["box-chat", Number(roomId)], {
-            ...data,
-            room_messes: data?.room_messes.map((item: any) => {
+            ...boxChatOld,
+            room_messes: boxChatOld?.room_messes.map((item: any) => {
               if (item.messageId == Number(result.messageId)) {
                 return {
                   ...item,
@@ -324,7 +352,7 @@ const BoxChat = () => {
         }
       }
     );
-  }, [socket.current, data]);
+  }, [socket.current]);
 
   React.useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
